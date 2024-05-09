@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Различия между threading, multiprocessing и async в Python - Lab 2</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "\u0420\u0430\u0437\u043b\u0438\u0447\u0438\u044f \u043c\u0435\u0436\u0434\u0443 threading, multiprocessing \u0438 async \u0432 Python";
+        var mkdocs_page_input_path = "task1.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Lab 2
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Лабораторная работа 2. Потоки. Процессы. Асинхронность.</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../async_task_2/">Async подход к парсингу</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../multipr_task_2/">Multiprocessing подход к парсингу</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../results_task2/">Выводы</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">Различия между threading, multiprocessing и async в Python</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#threading">Подход threading:</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#multiprocessing">Подход multiprocessing:</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#async">Подход async:</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#_1">Сравнение времени выполнения</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../threadind_task_2/">Threading подход к парсингу</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Lab 2</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Различия между threading, multiprocessing и async в Python</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="threading-multiprocessing-async-python">Различия между threading, multiprocessing и async в Python</h1>
+<p>Задача: Напишите три различных программы на Python, 
+использующие каждый из подходов: threading, multiprocessing и async. 
+Каждая программа должна решать считать сумму всех чисел от 1 до 1000000. 
+Разделите вычисления на несколько параллельных задач для ускорения выполнения.</p>
+<h3 id="threading">Подход threading:</h3>
+<pre><code>import threading
+import time
+
+
+def calculate_sum(start, end, result):
+    partial_sum = sum(range(start, end))
+    result.append(partial_sum)
+
+
+def main():
+    result = []
+    start_time = time.time()
+    thread1 = threading.Thread(target=calculate_sum, args=(1, 500001, result))
+    thread2 = threading.Thread(target=calculate_sum, args=(500001, 1000001, result))
+
+    thread1.start()
+    thread2.start()
+
+    thread1.join()
+    thread2.join()
+
+    total_sum = sum(result)
+    end_time = time.time()
+    print("Total sum using threading:", total_sum)
+    print("Time taken:", end_time - start_time, "seconds")
+
+
+if __name__ == "__main__":
+    main()
+</code></pre>
+<p>В программе с использованием threading 
+создаются два потока (thread1 и thread2), 
+каждый из которых выполняет вычисление 
+суммы частичного диапазона чисел.</p>
+<p>thread1 = threading.Thread(target=calculate_sum, args=(1, 500001, result)): 
+Здесь создается первый поток thread1, который будет вычислять сумму чисел 
+от 1 до 500000. Мы передаем функцию calculate_sum в качестве цели 
+для выполнения потока и передаем ей аргументы (1, 500001, result).</p>
+<p>thread1.start(): Этот метод запускает выполнение первого потока.</p>
+<p>thread1.join(): Этот метод блокирует основной поток, пока thread1 
+не завершится.
+Аналогичные шаги повторяются для thread2, 
+который вычисляет сумму чисел от 500001 до 1000000.</p>
+<p>Эти потоки запускаются параллельно с помощью 
+метода start() и затем ждут завершения друг друга с помощью метода join(). 
+Таким образом, вычисления выполняются параллельно.</p>
+<h3 id="multiprocessing">Подход multiprocessing:</h3>
+<pre><code>import multiprocessing
+import time
+
+
+def calculate_sum(start, end, result):
+    partial_sum = sum(range(start, end))
+    result.put(partial_sum)
+
+
+def main():
+    result = multiprocessing.Queue()
+    start_time = time.time()
+    process1 = multiprocessing.Process(target=calculate_sum, args=(1, 500001, result))
+    process2 = multiprocessing.Process(target=calculate_sum, args=(500001, 1000001, result))
+
+    process1.start()
+    process2.start()
+
+    process1.join()
+    process2.join()
+
+    total_sum = 0
+    while not result.empty():
+        total_sum += result.get()
+
+    end_time = time.time()
+    print("Total sum using multiprocessing:", total_sum)
+    print("Time taken:", end_time - start_time, "seconds")
+
+
+if __name__ == "__main__":
+    main()
+</code></pre>
+<p>В коде с использованием 
+multiprocessing создаются два процесса 
+(process1 и process2), 
+каждый из которых (как и предыдущем подходе) выполняет вычисление суммы частичного диапазона чисел.</p>
+<p>process1 = multiprocessing.Process(target=calculate_sum, args=(1, 500001, result)): Здесь создается первый процесс process1, который будет вычислять сумму чисел от 1 до 500000. Мы передаем функцию calculate_sum в качестве цели для выполнения процесса и передаем ей аргументы (1, 500001, result).</p>
+<p>process1.start(): Этот метод запускает выполнение первого процесса.</p>
+<p>process1.join(): Этот метод блокирует основной процесс, пока process1 не 
+завершится.
+Аналогичные шаги повторяются для process2, который вычисляет 
+сумму чисел от 500001 до 1000000.</p>
+<p>Эти процессы запускаются параллельно с помощью метода start() 
+затем ждут завершения друг друга с помощью метода join(). 
+Таким образом, вычисления выполняются параллельно.</p>
+<h3 id="async">Подход async:</h3>
+<pre><code>import asyncio
+import time
+
+
+async def calculate_sum(start, end):
+    return sum(range(start, end))
+
+
+async def main():
+    start_time = time.time()
+    task1 = asyncio.create_task(calculate_sum(1, 500001))
+    task2 = asyncio.create_task(calculate_sum(500001, 1000001))
+
+    result1, result2 = await asyncio.gather(task1, task2)
+
+    total_sum = result1 + result2
+    end_time = time.time()
+    print("Total sum using asyncio:", total_sum)
+    print("Time taken:", end_time - start_time, "seconds")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+</code></pre>
+<p>В программе с использованием asyncio создаются две 
+задачи (task1 и task2), каждая из которых выполняет вычисление 
+суммы частичного диапазона чисел. </p>
+<p>task1 = asyncio.create_task(calculate_sum(1, 500001)): 
+Здесь создается первая асинхронная задача task1, 
+которая вычисляет сумму чисел от 1 до 500000.</p>
+<p>task2 = asyncio.create_task(calculate_sum(500001, 1000001)): 
+Здесь создается вторая асинхронная задача task2, 
+которая вычисляет сумму чисел от 500001 до 1000000.</p>
+<p>result1, result2 = await asyncio.gather(task1, task2): 
+Здесь мы используем функцию asyncio.gather(), ч
+тобы параллельно выполнить обе задачи и дождаться их завершения. 
+Мы ожидаем результаты выполнения задач task1 и task2 и 
+присваиваем их переменным result1 и result2.</p>
+<h3 id="_1">Сравнение времени выполнения</h3>
+<p><img alt="threading" src="../image/threading.png" /></p>
+<p><img alt="multipr" src="../image/multipr.png" /></p>
+<p><img alt="asynco" src="../image/asynco.png" /></p>
+<p>Использование threading позволило достичь общей суммы за самое короткое время
+multiprocessing потребовал немного больше времени, чем потоки, но также показал хороший результат
+Использование asyncio также позволило вычислить общую сумму за небольшое время, 
+хотя время выполнения немного превышает время с потоками</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../results_task2/" class="btn btn-neutral float-left" title="Выводы"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../threadind_task_2/" class="btn btn-neutral float-right" title="Threading подход к парсингу">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../results_task2/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../threadind_task_2/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
